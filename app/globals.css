@@ -123,9 +123,15 @@
 
 .dotted-background {
   background-color: #16223c;
-  background-image: radical-gradient(
+  background-image: radial-gradient(
     rgba(225, 225, 225, 0.28) 1px,
-    trasparent 1px
+    transparent 1px
   );
   background-size: 30px 30px;
+}
+
+@layer utilities {
+  .gradient-title {
+      @apply bg-gradient-to-br from-blue-500 to-green-500 font-extrabold tracking-tight pr-2 pb-2 text-transparent bg-clip-text;
+  }
 }
