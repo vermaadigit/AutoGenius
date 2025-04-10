@@ -120,3 +120,12 @@
     @apply bg-background text-foreground;
   }
 }
+
+.dotted-background {
+  background-color: #16223c;
+  background-image: radical-gradient(
+    rgba(225, 225, 225, 0.28) 1px,
+    trasparent 1px
+  );
+  background-size: 30px 30px;
+}
