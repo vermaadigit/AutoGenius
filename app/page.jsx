@@ -1,5 +1,8 @@
+import CarCard from "@/components/car-card";
+import HomeSearch from "@/components/home-search";
 import { Button } from "@/components/ui/button";
-import { Section } from "lucide-react";
+import { featuredCars } from "@/lib/data";
+import { ChevronRight, Section } from "lucide-react";
 
 export default function Home() {
   return (
@@ -19,6 +22,23 @@ export default function Home() {
           </div>
 
           {/* Search */}
+          <HomeSearch />
+        </div>
+      </section>
+
+      <section className="py-12 ">
+        <div>
+          <div>
+            <h2>Feature Cars</h2>
+            <Button>
+              View All <ChevronRight className="ml-1 h-4 w-4" />
+            </Button>
+          </div>
+          <div>
+            {featuredCars.map((car) => {
+              return <CarCard key={car.id} car={car} />;
+            })}
+          </div>
         </div>
       </section>
     </div>
