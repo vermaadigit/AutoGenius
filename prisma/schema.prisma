@@ -70,6 +70,39 @@ enum CarStatus {
   SOLD
 }
 
+model DealershipInfo {
+  id           String         @id @default(uuid())
+  name         String         @default("AutoGenius Motors")
+  address      String         @default("123 Main Street, Anytown USA")
+  phone        String         @default("123-456-7890")
+  email        String         @default("info@autogenius.com")
+  workingHours WorkingHours[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+model WorkingHours {
+  id           String         @id @default(uuid())
+  dealershipId String
+  dealership   DealershipInfo @relation(fields: [dealershipId], references: [id], onDelete: Cascade)
+  dayOfWeek    DayOfWeek
+  openTime     String
+  closeTime    String
+  isOpen       Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+}
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
 model UserSavedCar {
 }
 
