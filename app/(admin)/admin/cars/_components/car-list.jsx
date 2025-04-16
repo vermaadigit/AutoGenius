@@ -10,7 +10,9 @@ const CarsList = () => {
   const [search, setSearch] = useState("");
   const router = useRouter();
 
-  const handleSearchSubmit = () => {};
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+  };
 
   return (
     <div className="space-y-4">
