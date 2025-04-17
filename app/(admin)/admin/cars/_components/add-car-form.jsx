@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -31,6 +31,15 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { addCar } from "@/actions/cars";
 import useFetch from "@/hooks/use-fetch";
+import { constructFrom } from "date-fns";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 const fuelTypes = ["Petrol", "Diesel", "Electric", "Hybrid", "Plug-in Hybrid"];
 const transmissions = ["Automatic", "Manual", "Semi-Automatic"];
@@ -100,13 +109,37 @@ const AddCarForm = () => {
     },
   });
 
-  useFetch(addCar);
+  const {
+    data: addCarResult,
+    loading: addCarLoading,
+    fn: addCarFn,
+  } = useFetch(addCar);
+
+  useEffect(() => {
+    if (addCarResult?.success) {
+      toast.success("Car added successfully");
+      router.push("/admin/cars");
+    }
+  }, [addCarResult, addCarLoading]);
 
   const onSubmit = async (data) => {
     if (uploadedImages.length === 0) {
       setImageErrors("Please upload at least one image");
       return;
     }
+
+    const carData = {
+      ...data,
+      year: parseInt(data.year),
+      price: parseFloat(data.price),
+      mileage: parseInt(data.mileage),
+      seats: data.seats ? parseInt(data.seats) : null,
+    };
+
+    await addCarFn({
+      carData,
+      images: uploadedImages,
+    });
   };
 
   // const onMultiImagesDrop = (acceptedFiles) => {
@@ -532,9 +565,9 @@ const AddCarForm = () => {
                 <Button
                   type="submit"
                   className={"w-full md:w-auto"}
-                  disabled={true}
+                  disabled={addCarLoading}
                 >
-                  {true ? (
+                  {addCarLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Adding
                       Car...{" "}
@@ -548,7 +581,18 @@ const AddCarForm = () => {
           </Card>
         </TabsContent>
         <TabsContent value="ai" className={"mt-6"}>
-          Change your password here.
+          <Card>
+            <CardHeader>
+              <CardTitle>Card Title</CardTitle>
+              <CardDescription>Card Description</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p>Card Content</p>
+            </CardContent>
+            <CardFooter>
+              <p>Card Footer</p>
+            </CardFooter>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
