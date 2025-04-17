@@ -21,7 +21,9 @@ export async function processCarImageWithAI(file) {
     }
 
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: "Gemini 2.0 Flash" });
+    const model = genAI.getGenerativeModel({
+      model: "gemini-1.5-flash-latest",
+    });
 
     const base64Image = await fileToBase64(file);
 
@@ -66,7 +68,7 @@ export async function processCarImageWithAI(file) {
 
     const result = await model.generateContent([imagePart, prompt]);
     const response = await result.response;
-    const text = response.text;
+    const text = await response.text();
     const cleanedText = text.replace(/```(?:json)?\n?/g, "").trim();
 
     try {
