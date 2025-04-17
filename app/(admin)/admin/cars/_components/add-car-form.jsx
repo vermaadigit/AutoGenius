@@ -30,6 +30,7 @@ import { Loader2, Upload, X } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { addCar } from "@/actions/cars";
+import useFetch from "@/hooks/use-fetch";
 
 const fuelTypes = ["Petrol", "Diesel", "Electric", "Hybrid", "Plug-in Hybrid"];
 const transmissions = ["Automatic", "Manual", "Semi-Automatic"];
@@ -99,13 +100,13 @@ const AddCarForm = () => {
     },
   });
 
+  useFetch(addCar);
+
   const onSubmit = async (data) => {
     if (uploadedImages.length === 0) {
       setImageErrors("Please upload at least one image");
       return;
     }
-
-    addCar;
   };
 
   // const onMultiImagesDrop = (acceptedFiles) => {
