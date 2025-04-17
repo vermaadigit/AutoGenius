@@ -26,20 +26,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useDropzone } from "react-dropzone";
 import { toast } from "sonner";
-import { Loader2, Upload, X } from "lucide-react";
+import { Camera, Loader2, Upload, X } from "lucide-react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { addCar } from "@/actions/cars";
 import useFetch from "@/hooks/use-fetch";
 import { constructFrom } from "date-fns";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 
 const fuelTypes = ["Petrol", "Diesel", "Electric", "Hybrid", "Plug-in Hybrid"];
 const transmissions = ["Automatic", "Manual", "Semi-Automatic"];
@@ -58,6 +50,8 @@ const AddCarForm = () => {
   const [activeTab, setActiveTab] = useState("ai");
   const [uploadedImages, setUploadedImages] = useState([]);
   const [imageErrors, setImageErrors] = useState("");
+  const [imagePreview, setImagePreview] = useState(null);
+  const [uploadedAiImage, setUploadedAiImage] = useState(null);
 
   const carFormSchema = z.object({
     make: z.string().min(1, "Make is required"),
@@ -108,6 +102,37 @@ const AddCarForm = () => {
       featured: false,
     },
   });
+
+  const onAiDrop = (acceptedFiles) => {
+    const file = acceptedFiles[0];
+
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Image size must be less than 5MB");
+        return;
+      }
+
+      setUploadedAiImage(file);
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setImagePreview(e.target.result);
+        toast.success("Image Uploaded Successfully");
+      };
+
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const { getRootProps: getAiRootProps, getInputProps: getAiInputProps } =
+    useDropzone({
+      onDrop: onAiDrop,
+      accept: {
+        "image/*": [".jpg", ".jpeg", ".png", ".webp"],
+      },
+      maxFiles: 1,
+      multiple: false,
+    });
 
   const {
     data: addCarResult,
@@ -583,15 +608,71 @@ const AddCarForm = () => {
         <TabsContent value="ai" className={"mt-6"}>
           <Card>
             <CardHeader>
-              <CardTitle>Card Title</CardTitle>
-              <CardDescription>Card Description</CardDescription>
+              <CardTitle>AI-Powered Car Details Extraction</CardTitle>
+              <CardDescription>
+                Upload an image of a car and let AI extracts its deatils.
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <p>Card Content</p>
+              <div className="space-y-6">
+                <div className="border-2 border-dashed rounded-lg p-6 text-center">
+                  {imagePreview ? (
+                    <div className="flex flex-col items-center">
+                      <img
+                        src={imagePreview}
+                        alt="Car preview"
+                        className="max-h-56 max-w-full object-contain mb-4"
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          variant={"outline"}
+                          size={"sm"}
+                          onClick={() => {
+                            setImagePreview(null);
+                            setUploadedAiImage(null);
+                          }}
+                        >
+                          Remove
+                        </Button>
+                        <Button
+                          size={"sm"}
+                          // onClick={}
+                          // disabled={}
+                        >
+                          {true ? (
+                            <>
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Processing....
+                            </>
+                          ) : (
+                            <>
+                              <Camera className="mr-2 h-4 w-4" />
+                              Extract Car Details
+                            </>
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div
+                      {...getAiRootProps()}
+                      className="cursor-pointer hover:bg-gray-50 transition"
+                    >
+                      <input {...getAiInputProps()} />
+                      <div className="flex flex-col items-center justify-center">
+                        <Camera className="h-12 w-12 text-gray-400 mb-2" />
+                        <p className="text-gray-600 text-sm">
+                          Drag & Drop a car Image or click to select"
+                        </p>
+                        <p className="text-gray-500 text-xs mt-1">
+                          Supports : JPG, PNG, WebP (max 5MB)
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
             </CardContent>
-            <CardFooter>
-              <p>Card Footer</p>
-            </CardFooter>
           </Card>
         </TabsContent>
       </Tabs>
