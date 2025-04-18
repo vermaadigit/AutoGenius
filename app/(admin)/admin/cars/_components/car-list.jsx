@@ -88,6 +88,17 @@ const CarsList = () => {
     error: updateError,
   } = useFetch(updateCarStatus);
 
+  // useEffect(() => {
+  //   if (deleteResult?.success) {
+  //     toast.success("Car deleted Successfully");
+  //     fetchCars(search);
+  //   }
+  //   if (updateResult?.success) {
+  //     toast.success("Car updated Successfully");
+  //     fetchCars(search);
+  //   }
+  // }, [updateResult, deleteResult]);
+
   useEffect(() => {
     if (deleteResult?.success) {
       toast.success("Car deleted Successfully");
@@ -97,18 +108,7 @@ const CarsList = () => {
       toast.success("Car updated Successfully");
       fetchCars(search);
     }
-  }, [updateResult, deleteResult, search]);
-
-  // useEffect(() => {
-  //   if (!updateResult) return;
-
-  //   if (updateResult.success) {
-  //     toast.success("Car updated successfully");
-  //     fetchCars(search);
-  //   }
-  // }, [updateResult?.success, search]);
-
-  // Handle successful operations
+  }, [deleteResult?.success, updateResult?.success, search]);
 
   // Handle errors
   useEffect(() => {
@@ -328,7 +328,20 @@ const CarsList = () => {
               </Table>
             </div>
           ) : (
-            <div></div>
+            <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
+              <CarIcon className="h-12 w-12 text-gray-300 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-1">
+                No cars found
+              </h3>
+              <p className="text-gray-500 mb-4">
+                {search
+                  ? "No cars match your search criteria"
+                  : "Your inventory is empty. Add cars to get started."}
+              </p>
+              <Button onClick={() => router.push("/admin/cars/create")}>
+                Add Your First Car
+              </Button>
+            </div>
           )}
         </CardContent>
       </Card>
