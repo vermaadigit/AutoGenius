@@ -3,9 +3,27 @@
 import { deleteCar, getCars, updateCarStatus } from "@/actions/cars";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Plus, Search } from "lucide-react";
+import { Loader2, Plus, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import useFetch from "@/hooks/use-fetch";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 const CarsList = () => {
   const [search, setSearch] = useState("");
@@ -17,6 +35,10 @@ const CarsList = () => {
     data: carsData,
     error: carsError,
   } = useFetch(getCars);
+
+  useEffect(() => {
+    fetchCars(search);
+  }, [search]);
 
   const {
     loading: deletingCar,
@@ -62,6 +84,38 @@ const CarsList = () => {
       </div>
 
       {/* Cars Table */}
+      <Card>
+        <CardContent className={"p-0"}>
+          {loadingCars && !carsData ? (
+            <div className="flex justify-center items-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+            </div>
+          ) : carsData?.success && carsData.data.length > 0 ? (
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[100px]">Invoice</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Method</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell className="font-medium">INV001</TableCell>
+                    <TableCell>Paid</TableCell>
+                    <TableCell>Credit Card</TableCell>
+                    <TableCell className="text-right">$250.00</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+          ) : (
+            <div></div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };
