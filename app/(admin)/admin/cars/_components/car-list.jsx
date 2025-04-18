@@ -3,7 +3,7 @@
 import { deleteCar, getCars, updateCarStatus } from "@/actions/cars";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Plus, Search } from "lucide-react";
+import { CarIcon, Loader2, Plus, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import {
@@ -24,6 +24,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import Image from "next/image";
+import { formatCurrency } from "@/lib/helper";
+import { Badge } from "@/components/ui/badge";
 
 const CarsList = () => {
   const [search, setSearch] = useState("");
@@ -56,6 +59,31 @@ const CarsList = () => {
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
+  };
+
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case "AVAILABLE":
+        return (
+          <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+            Available
+          </Badge>
+        );
+      case "UNAVAILABLE":
+        return (
+          <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">
+            Unavailable
+          </Badge>
+        );
+      case "SOLD":
+        return (
+          <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">
+            Sold
+          </Badge>
+        );
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
   };
 
   return (
@@ -95,19 +123,44 @@ const CarsList = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[100px]">Invoice</TableHead>
+                    <TableHead className="w-12"></TableHead>
+                    <TableHead>Make & Model</TableHead>
+                    <TableHead>Year</TableHead>
+                    <TableHead>Price</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Method</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
+                    <TableHead>Featured</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <TableRow>
-                    <TableCell className="font-medium">INV001</TableCell>
-                    <TableCell>Paid</TableCell>
-                    <TableCell>Credit Card</TableCell>
-                    <TableCell className="text-right">$250.00</TableCell>
-                  </TableRow>
+                  {carsData.data.map((car) => {
+                    return (
+                      <TableRow key={car.id}>
+                        <TableCell className="w-10 h-10 rounded-md overflow-hidden">
+                          {car.images && car.images.length > 0 ? (
+                            <Image
+                              src={car.images[0]}
+                              alt={`${car.make} ${car.model}`}
+                              height={40}
+                              width={40}
+                              className="w-full h-full object-cover"
+                              priority
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                              <CarIcon className="h-6 w-6 text-gray-400" />
+                            </div>
+                          )}
+                        </TableCell>
+                        <TableCell className={"font-medium"}>
+                          {car.make} {car.model}
+                        </TableCell>
+                        <TableCell>{car.year}</TableCell>
+                        <TableCell>{formatCurrency(car.price)}</TableCell>
+                        <TableCell>{getStatusBadge(car.status)}</TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
