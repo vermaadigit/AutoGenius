@@ -27,6 +27,7 @@ import {
 import Image from "next/image";
 import { formatCurrency } from "@/lib/helper";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 const CarsList = () => {
   const [search, setSearch] = useState("");
@@ -56,6 +57,22 @@ const CarsList = () => {
     data: updateResult,
     error: updateError,
   } = useFetch(updateCarStatus);
+
+  // useEffect(() => {
+  //   if (updateResult?.success) {
+  //     toast.success("Car updated Successfully");
+  //     fetchCars(search);
+  //   }
+  // }, [updateResult, search]);
+
+  useEffect(() => {
+    if (!updateResult) return;
+
+    if (updateResult.success) {
+      toast.success("Car updated successfully");
+      fetchCars(search);
+    }
+  }, [updateResult?.success, search]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
