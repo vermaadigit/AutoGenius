@@ -1,5 +1,6 @@
 "use client";
 
+import { deleteCar, getCars, updateCarStatus } from "@/actions/cars";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus, Search } from "lucide-react";
@@ -9,6 +10,27 @@ import React, { useState } from "react";
 const CarsList = () => {
   const [search, setSearch] = useState("");
   const router = useRouter();
+
+  const {
+    loading: loadingCars,
+    fn: fetchCars,
+    data: carsData,
+    error: carsError,
+  } = useFetch(getCars);
+
+  const {
+    loading: deletingCar,
+    fn: deleteCarFn,
+    data: deleteResult,
+    error: deleteError,
+  } = useFetch(deleteCar);
+
+  const {
+    loading: updatingCar,
+    fn: updateCarStatusFn,
+    data: updateResult,
+    error: updateError,
+  } = useFetch(updateCarStatus);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
