@@ -3,7 +3,7 @@
 import { deleteCar, getCars, updateCarStatus } from "@/actions/cars";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CarIcon, Loader2, Plus, Search } from "lucide-react";
+import { CarIcon, Loader2, Plus, Search, Star, StarOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import {
@@ -59,6 +59,10 @@ const CarsList = () => {
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
+  };
+
+  const handleToggleFeatured = async (car) => {
+    await updateCarStatusFn(car.id, { featured: !car.featured });
   };
 
   const getStatusBadge = (status) => {
@@ -158,6 +162,22 @@ const CarsList = () => {
                         <TableCell>{car.year}</TableCell>
                         <TableCell>{formatCurrency(car.price)}</TableCell>
                         <TableCell>{getStatusBadge(car.status)}</TableCell>
+
+                        <TableCell>
+                          <Button
+                            variant={"ghost"}
+                            size="sm"
+                            className={"p-0 h-9 w-9"}
+                            onClick={() => handleToggleFeatured(car)}
+                            disabled={updatingCar}
+                          >
+                            {car.featured ? (
+                              <Star className="h-5 w-5 text-amber-500 fill-amber-500" />
+                            ) : (
+                              <StarOff className="h-5 w-5 text-gray-400" />
+                            )}
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     );
                   })}
