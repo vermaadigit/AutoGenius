@@ -3,7 +3,17 @@
 import { deleteCar, getCars, updateCarStatus } from "@/actions/cars";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CarIcon, Loader2, Plus, Search, Star, StarOff } from "lucide-react";
+import {
+  CarIcon,
+  Eye,
+  Loader2,
+  MoreHorizontal,
+  Plus,
+  Search,
+  Star,
+  StarOff,
+  Trash2,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import {
@@ -28,9 +38,29 @@ import Image from "next/image";
 import { formatCurrency } from "@/lib/helper";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const CarsList = () => {
   const [search, setSearch] = useState("");
+  const [carToDelete, setCarToDelete] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
   const router = useRouter();
 
   const {
@@ -58,28 +88,62 @@ const CarsList = () => {
     error: updateError,
   } = useFetch(updateCarStatus);
 
-  // useEffect(() => {
-  //   if (updateResult?.success) {
-  //     toast.success("Car updated Successfully");
-  //     fetchCars(search);
-  //   }
-  // }, [updateResult, search]);
-
   useEffect(() => {
-    if (!updateResult) return;
-
-    if (updateResult.success) {
-      toast.success("Car updated successfully");
+    if (deleteResult?.success) {
+      toast.success("Car deleted Successfully");
       fetchCars(search);
     }
-  }, [updateResult?.success, search]);
+    if (updateResult?.success) {
+      toast.success("Car updated Successfully");
+      fetchCars(search);
+    }
+  }, [updateResult, deleteResult, search]);
+
+  // useEffect(() => {
+  //   if (!updateResult) return;
+
+  //   if (updateResult.success) {
+  //     toast.success("Car updated successfully");
+  //     fetchCars(search);
+  //   }
+  // }, [updateResult?.success, search]);
+
+  // Handle successful operations
+
+  // Handle errors
+  useEffect(() => {
+    if (carsError) {
+      toast.error("Failed to load cars");
+    }
+
+    if (deleteError) {
+      toast.error("Failed to delete car");
+    }
+
+    if (updateError) {
+      toast.error("Failed to update car");
+    }
+  }, [carsError, deleteError, updateError]);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
+    fetchCars(search);
+  };
+
+  const handleDeleteCar = async (car) => {
+    if (!carToDelete) return;
+
+    await deleteCarFn(carToDelete.id);
+    setDeleteDialogOpen(false);
+    setCarToDelete(null);
   };
 
   const handleToggleFeatured = async (car) => {
     await updateCarStatusFn(car.id, { featured: !car.featured });
+  };
+
+  const handleStatusUpdate = async (car, newStatus) => {
+    await updateCarStatusFn(car.id, { status: newStatus });
   };
 
   const getStatusBadge = (status) => {
@@ -195,6 +259,68 @@ const CarsList = () => {
                             )}
                           </Button>
                         </TableCell>
+
+                        <TableCell className={"text-right"}>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="p-0 h-8 w-8"
+                              >
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                              <DropdownMenuItem
+                                onClick={() => router.push(`/cars/${car.id}`)}
+                              >
+                                <Eye className="mr-2 h-4 w-4" />
+                                View
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuLabel>Status</DropdownMenuLabel>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  handleStatusUpdate(car, "AVAILABLE")
+                                }
+                                disabled={
+                                  car.status === "AVAILABLE" || updatingCar
+                                }
+                              >
+                                Set Available
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  handleStatusUpdate(car, "UNAVAILABLE")
+                                }
+                                disabled={
+                                  car.status === "UNAVAILABLE" || updatingCar
+                                }
+                              >
+                                Set Unavailable
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={() => handleStatusUpdate(car, "SOLD")}
+                                disabled={car.status === "SOLD" || updatingCar}
+                              >
+                                Mark as Sold
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem
+                                className="text-red-600"
+                                onClick={() => {
+                                  setCarToDelete(car);
+                                  setDeleteDialogOpen(true);
+                                }}
+                              >
+                                <Trash2 className="mr-2 h-4 w-4" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
                       </TableRow>
                     );
                   })}
@@ -206,6 +332,43 @@ const CarsList = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete {carToDelete?.make}{" "}
+              {carToDelete?.model} ({carToDelete?.year})? This action cannot be
+              undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+              disabled={deletingCar}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteCar}
+              disabled={deletingCar}
+            >
+              {deletingCar ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                "Delete Car"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
