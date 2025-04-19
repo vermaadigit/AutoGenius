@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Clock, Shield } from "lucide-react";
+import { Clock, Loader2, Save, Shield } from "lucide-react";
 import useFetch from "@/hooks/use-fetch";
 import {
   getDealershipInfo,
@@ -18,6 +18,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 // Day names for display
 const DAYS = [
@@ -76,6 +80,21 @@ const SettingsForm = () => {
     fetchUsers();
   }, []);
 
+  // Handle working hours change
+  const handleWorkingHourChange = (index, field, value) => {
+    const updatedHours = [...workingHours];
+    updatedHours[index] = {
+      ...updatedHours[index],
+      [field]: value,
+    };
+    setWorkingHours(updatedHours);
+  };
+
+  // Save working hours
+  const handleSaveHours = async () => {
+    await saveHours(workingHours);
+  };
+
   return (
     <div className="space-y-6">
       <Tabs defaultValue="hours">
@@ -92,15 +111,104 @@ const SettingsForm = () => {
         <TabsContent value="hours" className={"space-y-6 mt-6"}>
           <Card>
             <CardHeader>
-              <CardTitle>Card Title</CardTitle>
-              <CardDescription>Card Description</CardDescription>
+              <CardTitle>Working Hours</CardTitle>
+              <CardDescription>
+                Set your Dealership's working Hours for each day of the week.
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <p>Card Content</p>
+              <div className="space-y-4">
+                {DAYS.map((day, index) => {
+                  return (
+                    <div
+                      key={day.value}
+                      className="grid grid-cols-12 gap-4 items-center py-3 px-4 rouned-lg hover:bg-slate-50"
+                    >
+                      <div className="col-span-3 md:col-span-2">
+                        <div className="font-medium">{day.label}</div>
+                      </div>
+
+                      <div className="col-span-9 md:col-span-2 flex items-center">
+                        <Checkbox
+                          id={`is-open-${day.value}`}
+                          checked={workingHours[index]?.isOpen}
+                          onCheckedChange={(checked) => {
+                            handleWorkingHourChange(index, "isOpen", checked);
+                          }}
+                        />
+                        <Label
+                          htmlFor={`is-open-${day.value}`}
+                          className="ml-2 cursor-pointer"
+                        >
+                          {workingHours[index]?.isOpen ? "Open" : "Closed"}
+                        </Label>
+                      </div>
+
+                      {workingHours[index]?.isOpen && (
+                        <>
+                          <div className="col-span-5 md:col-span-4">
+                            <div className="flex items-center">
+                              <Clock className="h-4 w-4 text-gray-400 mr-2" />
+                              <Input
+                                type="time"
+                                value={workingHours[index]?.openTime}
+                                onChange={(e) =>
+                                  handleWorkingHourChange(
+                                    index,
+                                    "openTime",
+                                    e.target.value
+                                  )
+                                }
+                                className="text-sm"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="text-center col-span-1">to</div>
+
+                          <div className="col-span-5 md:col-span-3">
+                            <Input
+                              type="time"
+                              value={workingHours[index]?.closeTime}
+                              onChange={(e) =>
+                                handleWorkingHourChange(
+                                  index,
+                                  "closeTime",
+                                  e.target.value
+                                )
+                              }
+                              className="text-sm"
+                            />
+                          </div>
+                        </>
+                      )}
+
+                      {!workingHours[index]?.isOpen && (
+                        <div className="col-span-11 md:col-span-8 text-gray-500 italic text-sm">
+                          Closed all day
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="mt-6 flex justify-end">
+                <Button onClick={handleSaveHours} disabled={savingHours}>
+                  {savingHours ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="mr-2 h-4 w-4" />
+                      Save Working Hours
+                    </>
+                  )}
+                </Button>
+              </div>
             </CardContent>
-            <CardFooter>
-              <p>Card Footer</p>
-            </CardFooter>
           </Card>
         </TabsContent>
         <TabsContent value="password">Change your password here.</TabsContent>
