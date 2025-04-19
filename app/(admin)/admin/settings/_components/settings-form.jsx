@@ -252,7 +252,20 @@ const SettingsForm = () => {
             </CardContent>
           </Card>
         </TabsContent>
-        <TabsContent value="password">Change your password here.</TabsContent>
+
+        <TabsContent value="admins" className={"space-y-6 mt-6"}>
+          <Card>
+            <CardHeader>
+              <CardTitle>Admin Users</CardTitle>
+              <CardDescription>
+                Manage user with admin privileges
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p>Card Content</p>
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
     </div>
   );
