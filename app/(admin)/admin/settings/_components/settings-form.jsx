@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
+  CheckCircle,
   Clock,
   Loader2,
   Save,
@@ -42,6 +43,15 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 // Day names for display
 const DAYS = [
@@ -65,6 +75,10 @@ const SettingsForm = () => {
   );
 
   const [userSearch, setUserSearch] = useState("");
+  const [confirmAdminDialog, setConfirmAdminDialog] = useState(false);
+  const [userToPromote, setUserToPromote] = useState(null);
+  const [confirmRemoveDialog, setConfirmRemoveDialog] = useState(false);
+  const [userToDemote, setUserToDemote] = useState(null);
 
   // Custom hooks for API calls
   const {
@@ -147,12 +161,64 @@ const SettingsForm = () => {
     await saveHours(workingHours);
   };
 
+  // Handle errors
+  useEffect(() => {
+    if (settingsError) {
+      toast.error("Failed to load dealership settings");
+    }
+
+    if (saveError) {
+      toast.error(`Failed to save working hours: ${saveError.message}`);
+    }
+
+    if (usersError) {
+      toast.error("Failed to load users");
+    }
+
+    if (updateRoleError) {
+      toast.error(`Failed to update user role: ${updateRoleError.message}`);
+    }
+  }, [settingsError, saveError, usersError, updateRoleError]);
+
+  // useEffect(() => {
+  //   if (saveResult?.success) {
+  //     toast.success("Working hours saved successfully");
+  //     fetchDealershipInfo();
+  //   }
+
+  //   if (updateRoleResult?.success) {
+  //     toast.success("User role updated successfully");
+  //     fetchUsers();
+  //     setConfirmAdminDialog(false);
+  //     setConfirmRemoveDialog(false);
+  //   }
+  // }, [saveResult, updateRoleResult]);
+
   useEffect(() => {
     if (saveResult?.success) {
       toast.success("Working hours saved successfully");
       fetchDealershipInfo();
     }
-  }, [saveResult]);
+
+    if (updateRoleResult?.success) {
+      toast.success("User role updated successfully");
+      fetchUsers();
+      setConfirmAdminDialog(false);
+      setConfirmRemoveDialog(false);
+    }
+  }, [saveResult?.success, updateRoleResult?.success]);
+
+  // Make user admin
+  const handleMakeAdmin = async () => {
+    if (!userToPromote) return;
+    await updateRole(userToPromote.id, "ADMIN");
+  };
+
+  // Remove admin privileges
+  const handleRemoveAdmin = async () => {
+    if (!userToDemote) return;
+    await updateRole(userToDemote.id, "USER");
+  };
 
   // Filter users by search term
   const filteredUsers = usersData?.success
@@ -396,6 +462,85 @@ const SettingsForm = () => {
               )}
             </CardContent>
           </Card>
+
+          {/* Confirm Make Admin Dialog */}
+          <Dialog
+            open={confirmAdminDialog}
+            onOpenChange={setConfirmAdminDialog}
+          >
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Confirm Admin Privileges</DialogTitle>
+                <DialogDescription>
+                  Are you sure you want to give admin privileges to{" "}
+                  {userToPromote?.name || userToPromote?.email}? Admin users can
+                  manage all aspects of the dealership.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setConfirmAdminDialog(false)}
+                  disabled={updatingRole}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleMakeAdmin} disabled={updatingRole}>
+                  {updatingRole ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Confirming...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle className="mr-2 h-4 w-4" />
+                      Confirm
+                    </>
+                  )}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+
+          {/* Confirm Remove Admin Dialog */}
+          <Dialog
+            open={confirmRemoveDialog}
+            onOpenChange={setConfirmRemoveDialog}
+          >
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Remove Admin Privileges</DialogTitle>
+                <DialogDescription>
+                  Are you sure you want to remove admin privileges from{" "}
+                  {userToDemote?.name || userToDemote?.email}? They will no
+                  longer be able to access the admin dashboard.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter>
+                <Button
+                  variant="outline"
+                  onClick={() => setConfirmRemoveDialog(false)}
+                  disabled={updatingRole}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleRemoveAdmin}
+                  disabled={updatingRole}
+                >
+                  {updatingRole ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Removing...
+                    </>
+                  ) : (
+                    "Remove Admin"
+                  )}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </TabsContent>
       </Tabs>
     </div>
