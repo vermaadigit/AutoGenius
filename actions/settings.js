@@ -1,3 +1,5 @@
+"use server";
+
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
@@ -142,5 +144,69 @@ export async function saveWorkingHours(workingHours) {
     };
   } catch (error) {
     throw new Error("Error saving working hours:" + error.message);
+  }
+}
+
+export async function getUsers() {
+  try {
+    const { userId } = await auth();
+    if (!userId) throw new Error("Unauthorized");
+
+    // Check if user is admin
+    const adminUser = await db.user.findUnique({
+      where: { clerkUserId: userId },
+    });
+
+    if (!adminUser || adminUser.role !== "ADMIN") {
+      throw new Error("Unauthorized: Admin access required");
+    }
+
+    // Get all users
+    const users = await db.user.findMany({
+      orderBy: { createdAt: "desc" },
+    });
+
+    return {
+      success: true,
+      data: users.map((user) => ({
+        ...user,
+        createdAt: user.createdAt.toISOString(),
+        updatedAt: user.updatedAt.toISOString(),
+      })),
+    };
+  } catch (error) {
+    throw new Error("Error fetching users:" + error.message);
+  }
+}
+
+// Update user role
+export async function updateUserRole(userId, role) {
+  try {
+    const { userId: adminId } = await auth();
+    if (!adminId) throw new Error("Unauthorized");
+
+    // Check if user is admin
+    const adminUser = await db.user.findUnique({
+      where: { clerkUserId: adminId },
+    });
+
+    if (!adminUser || adminUser.role !== "ADMIN") {
+      throw new Error("Unauthorized: Admin access required");
+    }
+
+    // Update user role
+    await db.user.update({
+      where: { id: userId },
+      data: { role },
+    });
+
+    // Revalidate paths
+    revalidatePath("/admin/settings");
+
+    return {
+      success: true,
+    };
+  } catch (error) {
+    throw new Error("Error updating user role:" + error.message);
   }
 }
