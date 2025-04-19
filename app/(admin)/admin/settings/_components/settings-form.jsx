@@ -22,6 +22,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
+import { daysInWeek } from "date-fns/constants";
 
 // Day names for display
 const DAYS = [
@@ -53,6 +55,38 @@ const SettingsForm = () => {
     data: settingsData,
     error: settingsError,
   } = useFetch(getDealershipInfo);
+
+  useEffect(() => {
+    if (settingsData?.success && settingsData.data) {
+      const dealership = settingsData.data;
+
+      if (dealership.workingHours.length > 0) {
+        const mappedHours = DAYS.map((day) => {
+          const hourData = dealership.workingHours.find(
+            (h) => h.dayOfWeek === day.value
+          );
+
+          if (hourData) {
+            return {
+              dayOfWeek: hourData.dayOfWeek,
+              openTime: hourData.openTime,
+              closeTime: hourData.closeTime,
+              isOpen: hourData.isOpen,
+            };
+          }
+
+          // Default values if no working hour is found
+          return {
+            dayOfWeek: day.value,
+            openTime: "09:00",
+            closeTime: "18:00",
+            isOpen: day.value !== "SUNDAY",
+          };
+        });
+        setWorkingHours(mappedHours);
+      }
+    }
+  }, [settingsData]);
 
   const {
     loading: savingHours,
@@ -94,6 +128,13 @@ const SettingsForm = () => {
   const handleSaveHours = async () => {
     await saveHours(workingHours);
   };
+
+  useEffect(() => {
+    if (saveResult?.success) {
+      toast.success("Working hours saved successfully");
+      fetchDealershipInfo();
+    }
+  }, [saveResult]);
 
   return (
     <div className="space-y-6">
