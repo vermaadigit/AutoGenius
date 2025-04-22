@@ -177,7 +177,7 @@ const CarFilters = ({ filters }) => {
   ]);
 
   return (
-    <div>
+    <div className="flex lg:flex-col justify-between gap-4">
       {/* Mobile Filter  */}
       <div className="lg:hidden mb-4">
         <div className="flex items-center">
