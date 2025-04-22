@@ -1,6 +1,6 @@
 "use server";
 
-import { serializeCarData } from "@/lib/helpers";
+import { serializeCarData } from "@/lib/helper";
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
@@ -188,5 +188,61 @@ export async function toggleSavedCar(carId) {
     });
 
     if (!user) throw new Error("User not found");
-  } catch (error) {}
+
+    const car = await db.car.findUnique({
+      where: { id: carId },
+    });
+
+    if (!car) {
+      return {
+        success: false,
+        error: "Car not found",
+      };
+    }
+
+    // Check if car is already saved
+    const existingSave = await db.userSavedCar.findUnique({
+      where: {
+        userId_carId: {
+          userId: user.id,
+          carId,
+        },
+      },
+    });
+
+    if (existingSave) {
+      await db.userSavedCar.delete({
+        where: {
+          userId_carId: {
+            userId: user.id,
+            carId,
+          },
+        },
+      });
+
+      revalidatePath(`/saved-cars`);
+      return {
+        success: true,
+        saved: false,
+        message: "Car removed from favorites",
+      };
+    }
+
+    // If car is not saved, add it
+    await db.userSavedCar.create({
+      data: {
+        userId: user.id,
+        carId,
+      },
+    });
+
+    revalidatePath(`/saved-cars`);
+    return {
+      success: true,
+      saved: true,
+      message: "Car added to favorites",
+    };
+  } catch (error) {
+    throw new Error("Error toggling saved car:" + error.message);
+  }
 }
