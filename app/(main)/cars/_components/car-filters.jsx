@@ -12,8 +12,15 @@ import {
   SheetFooter,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Filter } from "lucide-react";
+import { Filter, Sliders } from "lucide-react";
 import CarFilterControls from "./filter-controls";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const CarFilters = ({ filters }) => {
   const router = useRouter();
@@ -221,8 +228,67 @@ const CarFilters = ({ filters }) => {
       </div>
 
       {/* Sort Selection  */}
+      <Select
+        value={sortBy}
+        onValueChange={(value) => {
+          setSortBy(value);
+          // Apply filters immediately when sort changes
+          setTimeout(() => applyFilters(), 0);
+        }}
+      >
+        <SelectTrigger className="w-[180px] lg:w-full">
+          <SelectValue placeholder="Sort by" />
+        </SelectTrigger>
+        <SelectContent>
+          {[
+            { value: "newest", label: "Newest First" },
+            { value: "priceAsc", label: "Price: Low to High" },
+            { value: "priceDesc", label: "Price: High to Low" },
+          ].map((option) => (
+            <SelectItem key={option.value} value={option.value}>
+              {option.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
 
-      {/* Destop Filters  */}
+      {/* Desktop Filters */}
+      <div className="hidden lg:block sticky top-24">
+        <div className="border rounded-lg overflow-hidden bg-white">
+          <div className="p-4 border-b bg-gray-50 flex justify-between items-center">
+            <h3 className="font-medium flex items-center">
+              <Sliders className="mr-2 h-4 w-4" />
+              Filters
+            </h3>
+            {activeFilterCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 text-sm text-gray-600"
+                onClick={clearFilters}
+              >
+                <X className="mr-1 h-3 w-3" />
+                Clear All
+              </Button>
+            )}
+          </div>
+
+          <div className="p-4">
+            <CarFilterControls
+              filters={filters}
+              currentFilters={currentFilters}
+              onFilterChange={handleFilterChange}
+              onClearFilter={handleClearFilter}
+            />
+          </div>
+
+          <div className="px-4 py-4 border-t">
+            <Button onClick={applyFilters} className="w-full">
+              Apply Filters
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
