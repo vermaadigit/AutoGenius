@@ -13,7 +13,7 @@ import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import useFetch from "@/hooks/use-fetch";
 
-export const CarCard = ({ car }) => {
+const CarCard = ({ car }) => {
   const { isSignedIn } = useAuth();
   const router = useRouter();
   const [isSaved, setIsSaved] = useState(car.wishlisted);
@@ -139,3 +139,5 @@ export const CarCard = ({ car }) => {
     </Card>
   );
 };
+
+export default CarCard;
