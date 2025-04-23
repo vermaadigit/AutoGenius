@@ -12,7 +12,7 @@ import {
   SheetFooter,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Filter, Sliders } from "lucide-react";
+import { Filter, Sliders, X } from "lucide-react";
 import CarFilterControls from "./filter-controls";
 import {
   Select,
@@ -21,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 
 const CarFilters = ({ filters }) => {
   const router = useRouter();
